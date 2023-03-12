@@ -108,7 +108,7 @@ func (c *Controller[M, D]) Search(ctx *gin.Context) {
 		r.StandardResponses(ctx, err)
 		return
 	}
-	// This prevents not null response bodies.
+	// This prevents null response bodies.
 	dtos := make([]D, 0)
 	for _, model := range models {
 		dto := c.mapper.ToDTO(model)
