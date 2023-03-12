@@ -1,12 +1,14 @@
-package messages
+package responses
 
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	e "github.com/pergamenum/go-consensus-standards/ehandler"
 )
 
 func ErrorResponse(ctx *gin.Context, status int, message ...any) {
@@ -22,8 +24,8 @@ func ErrorResponse(ctx *gin.Context, status int, message ...any) {
 			if errors.As(v, &valErrs) {
 				var sb strings.Builder
 				sb.WriteString("required: ")
-				for _, e := range valErrs {
-					sb.WriteString(fmt.Sprintf("(%s) ", e.Field()))
+				for _, ev := range valErrs {
+					sb.WriteString(fmt.Sprintf("(%s) ", ev.Field()))
 				}
 				str = strings.TrimSpace(sb.String())
 			} else {
@@ -40,4 +42,25 @@ func ErrorResponse(ctx *gin.Context, status int, message ...any) {
 		Message: str,
 	}
 	ctx.AbortWithStatusJSON(status, jo)
+}
+
+func StandardResponses(ctx *gin.Context, err error) {
+
+	if errors.Is(err, e.ErrConflict) {
+		ErrorResponse(ctx, http.StatusConflict, err)
+		return
+	}
+
+	if errors.Is(err, e.ErrNotFound) {
+		ErrorResponse(ctx, http.StatusNotFound, err)
+		return
+	}
+
+	if errors.Is(err, e.ErrBadRequest) {
+		ErrorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+	// This defers the logging responsibility to the gin middleware request/response logger.
+	_ = ctx.Error(err)
+	ErrorResponse(ctx, http.StatusInternalServerError, err)
 }

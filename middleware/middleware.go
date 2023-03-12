@@ -6,7 +6,7 @@ import (
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	m "github.com/pergamenum/go-utils-gin/messages"
+	er "github.com/pergamenum/go-utils-gin/responses"
 	"go.uber.org/zap"
 )
 
@@ -19,15 +19,15 @@ func AddRecovery(r *gin.Engine, logger *zap.Logger) {
 
 	recovery := func(c *gin.Context, recovered interface{}) {
 		if err, ok := recovered.(string); ok {
-			m.ErrorResponse(c, http.StatusInternalServerError, err)
+			er.ErrorResponse(c, http.StatusInternalServerError, err)
 			return
 		}
-		m.ErrorResponse(c, http.StatusInternalServerError)
+		er.ErrorResponse(c, http.StatusInternalServerError)
 	}
 	r.Use(ginzap.CustomRecoveryWithZap(logger, true, recovery))
 }
 
-func AddAuth(r *gin.Engine, logger *zap.Logger) {
+func AddAuth(_ *gin.Engine, _ *zap.Logger) {
 	// TODO: Auth Middleware
 	panic("NOT IMPLEMENTED")
 }
