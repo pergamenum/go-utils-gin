@@ -60,7 +60,15 @@ func StandardResponses(ctx *gin.Context, err error) {
 		ErrorResponse(ctx, http.StatusBadRequest, err)
 		return
 	}
+
+	// Any error below this point is to be logged.
 	// This defers the logging responsibility to the gin middleware request/response logger.
 	_ = ctx.Error(err)
+
+	if errors.Is(err, e.ErrBadGateway) {
+		ErrorResponse(ctx, http.StatusBadGateway, err)
+		return
+	}
+
 	ErrorResponse(ctx, http.StatusInternalServerError, err)
 }

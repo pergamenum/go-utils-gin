@@ -97,7 +97,8 @@ func (c *Controller[M, D]) Delete(ctx *gin.Context) {
 
 func (c *Controller[M, D]) Search(ctx *gin.Context) {
 
-	qs, err := t.Query{}.FromURL(ctx.Request.URL.Query())
+	q := t.Query{}
+	qs, err := q.FromURL(ctx.Request.URL.Query())
 	if err != nil {
 		r.ErrorResponse(ctx, http.StatusBadRequest, err)
 		return
