@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	e "github.com/pergamenum/go-consensus-standards/ehandler"
 	i "github.com/pergamenum/go-consensus-standards/interfaces"
+	"github.com/pergamenum/go-consensus-standards/reflection"
 	t "github.com/pergamenum/go-consensus-standards/types"
 	r "github.com/pergamenum/go-utils-gin/responses"
 )
@@ -38,7 +40,13 @@ func (c *Controller[M, D]) Create(ctx *gin.Context) {
 		return
 	}
 
-	model := c.mapper.FromDTO(dto)
+	model, err := reflection.AutoMap[M](dto)
+	if err != nil {
+		cause := e.Wrap("unable to map request", err)
+		err = e.Wrap(cause, e.ErrInternal)
+		r.StandardResponses(ctx, err)
+		return
+	}
 
 	err = c.service.Create(ctx, model)
 	if err != nil {
@@ -59,7 +67,14 @@ func (c *Controller[M, D]) Read(ctx *gin.Context) {
 		return
 	}
 
-	dto := c.mapper.ToDTO(model)
+	dto, err := reflection.AutoMap[D](model)
+	if err != nil {
+		cause := e.Wrap("unable to map response", err)
+		err = e.Wrap(cause, e.ErrInternal)
+		r.StandardResponses(ctx, err)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, dto)
 }
 
@@ -112,7 +127,10 @@ func (c *Controller[M, D]) Search(ctx *gin.Context) {
 	// This prevents null response bodies.
 	dtos := make([]D, 0)
 	for _, model := range models {
-		dto := c.mapper.ToDTO(model)
+		dto, err := reflection.AutoMap[D](model)
+		if err != nil {
+			continue
+		}
 		dtos = append(dtos, dto)
 	}
 	ctx.JSON(http.StatusOK, dtos)
