@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,19 +14,24 @@ import (
 
 type Controller[M, D any] struct {
 	service i.Service[M]
-	mapper  i.ControllerMapper[M, D]
 }
 
 type ControllerConfig[M, D any] struct {
 	Service i.Service[M]
-	Mapper  i.ControllerMapper[M, D]
+}
+
+type ControllerX[C context.Context] interface {
+	Create(ctx C)
+	Read(ctx C)
+	Update(ctx C)
+	Delete(ctx C)
+	Search(ctx C)
 }
 
 func NewController[M, D any](conf ControllerConfig[M, D]) *Controller[M, D] {
 
 	c := &Controller[M, D]{
 		service: conf.Service,
-		mapper:  conf.Mapper,
 	}
 
 	return c
@@ -87,7 +93,12 @@ func (c *Controller[M, D]) Update(ctx *gin.Context) {
 		return
 	}
 
-	update := c.mapper.ToUpdate(dto)
+	update, err := t.NewUpdate(dto)
+	if err != nil {
+		r.ErrorResponse(ctx, http.StatusBadRequest, err)
+		return
+	}
+
 	err = c.service.Update(ctx, update)
 	if err != nil {
 		r.StandardResponses(ctx, err)
