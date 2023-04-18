@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,14 +17,6 @@ type Controller[M, D any] struct {
 
 type ControllerConfig[M, D any] struct {
 	Service i.Service[M]
-}
-
-type ControllerX[C context.Context] interface {
-	Create(ctx C)
-	Read(ctx C)
-	Update(ctx C)
-	Delete(ctx C)
-	Search(ctx C)
 }
 
 func NewController[M, D any](conf ControllerConfig[M, D]) *Controller[M, D] {
